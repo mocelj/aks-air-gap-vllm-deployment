@@ -139,8 +139,6 @@ High-level flow:
 2. Copy the downloaded model artifacts and the NIM profile/model metadata to a shared NFS location.
 3. In the isolated cluster, mount that NFS location into the NIM container at the cache path so NIM can start without reaching out externally.
 
-> You will add the exact NVIDIA download commands here later.
-
 ### Jumpbox recommendation (fast downloads)
 
 If you are using a Jumpbox in Azure, the fastest way to download the weights is to use the same GPU VM size as you intend to use for inference (for example, a VM with an A100 GPU).
@@ -230,15 +228,15 @@ docker run --rm \
 Download an explicit profile:
 
 ```bash
-# TODO: add the exact profile-selection syntax for your model later
-# docker run --rm \
-#   --runtime=nvidia \
-#   --gpus all \
-#   -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" \
-#   -u "$(id -u)" \
-#   -e NGC_API_KEY \
-#   "$TARGET_IMAGE" \
-#   download-to-cache --profile <PROFILE_NAME>
+
+ docker run --rm \
+   --runtime=nvidia \
+   --gpus all \
+   -v "$LOCAL_NIM_CACHE:/opt/nim/.cache" \
+   -u "$(id -u)" \
+   -e NGC_API_KEY \
+   "$TARGET_IMAGE" \
+   download-to-cache --profile <PROFILE_NAME>
 ```
 
 After the download completes, copy the downloaded cache/profiles into the **shared NFS folder** that will be mounted by the AKS deployment manifest (so the isolated cluster can start without downloading anything).
