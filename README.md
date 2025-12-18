@@ -149,7 +149,7 @@ High-level flow:
 
 If you are using a Jumpbox in Azure, the fastest way to download the weights is to use the same GPU VM size as you intend to use for inference (for example, a VM with an A100 GPU).
 
-To avoid manual installation of most of the software, we recommend using the **DSVM** (Data Science Virtual Machine) marketplace Linux image. You will still need to install the NVIDIA container runtime.
+To avoid manual installation of most of the software, we recommend using the **DSVM** (Data Science Virtual Machine) Linux or a NVIDIA marketplace image. In case of using a DSVM image, you will need to install the NVIDIA container runtime.
 
 #### Ubuntu: install NVIDIA container runtime
 
