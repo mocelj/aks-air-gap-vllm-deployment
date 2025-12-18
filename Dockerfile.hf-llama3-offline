@@ -1,0 +1,27 @@
+FROM vllm/vllm-openai:v0.8.2
+
+# Install huggingface_hub CLI (provides `huggingface-cli`)
+RUN ["pip", "install", "--no-cache-dir", "huggingface_hub[cli]"]
+
+# Optional: dedicate cache dir inside the image
+ENV HF_HUB_CACHE=/models
+
+# Build-time secret: HF token for gated Llama 3 repo
+ARG HF_TOKEN
+
+# Use the token only for this download step (shell form for $HF_TOKEN expansion)
+RUN HF_TOKEN=$HF_TOKEN huggingface-cli download meta-llama/Meta-Llama-3-8B-Instruct \
+    --repo-type model \
+    --local-dir /models/llama3-8b-instruct \
+    --include "*"
+
+# Ensure runtime is fully offline
+ENV HF_HUB_OFFLINE=1
+ENV TRANSFORMERS_OFFLINE=1
+
+EXPOSE 8000
+
+# Let the base image ENTRYPOINT run api_server.py; we only pass arguments
+CMD ["--model", "/models/llama3-8b-instruct", \
+     "--host", "0.0.0.0", \
+     "--port", "8000"]

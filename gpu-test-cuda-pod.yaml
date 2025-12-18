@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cuda
+  labels:
+    app: cuda
+spec:
+  nodeSelector:
+    accelerator: nvidia
+  containers:
+    - name: cuda
+      image: "<YOUR-ACR-NAME>.azurecr.io/docker.io/nvidia/cuda:13.0.2-base-ubuntu22.04"
+      command: ["sleep"]
+      args: ["infinity"]
+      resources:
+        limits:
+          nvidia.com/gpu: 1
+  tolerations:
+    - key: "sku"
+      operator: "Equal"
+      value: "gpu"
+      effect: "NoSchedule"
+    - key: "kubernetes.azure.com/scalesetpriority"
+      operator: "Equal"
+      value: "spot"
+      effect: "NoSchedule"

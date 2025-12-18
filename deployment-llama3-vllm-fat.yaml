@@ -1,0 +1,70 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-gptoss
+  labels:
+    app: vllm-gptoss
+  annotations:
+    # Private internal Load Balancer in Azure
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: LoadBalancer
+  selector:
+    app: vllm-gptoss
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-gptoss
+  labels:
+    app: vllm-gptoss
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-gptoss
+  template:
+    metadata:
+      labels:
+        app: vllm-gptoss
+    spec:
+      containers:
+        - name: vllm-gptoss
+          # Use the Llama 3 fat image you built & pushed
+          image: "<YOUR-ACR-NAME>.azurecr.io/llama3-vllm-fat:8b-instruct"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          env:
+            - name: VLLM_WORKER_MULTIPROC
+              value: "true"
+            - name: VLLM_LOG_LEVEL
+              value: "info"
+            # extra safety to keep runtime fully offline
+            - name: HF_HUB_OFFLINE
+              value: "1"
+            - name: TRANSFORMERS_OFFLINE
+              value: "1"
+          # No args needed: CMD in the image already sets host/port/model
+          # args: []
+      nodeSelector:
+        accelerator: nvidia
+      tolerations:
+        - key: "sku"
+          operator: "Equal"
+          value: "gpu"
+          effect: "NoSchedule"
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"

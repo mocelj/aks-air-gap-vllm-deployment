@@ -1,0 +1,2 @@
+# Keep internal, org-specific deployment artifacts out of git
+internal-resources/
