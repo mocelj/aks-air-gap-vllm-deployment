@@ -47,6 +47,9 @@ kubectl delete pod cuda
 
 ## 2) Deploy a model prepared for offline usage from Hugging Face
 
+![Isolated AKS vLLM with Hugging Face offline model image](images/Isolated-AKS-vLLM-HF.drawio.png)
+*High-level architecture: AKS running vLLM with a Hugging Face model fully baked into the image for offline inference.*
+
 Goal: build a container image that already contains the model weights, then run it in an isolated cluster **without downloading anything at runtime**.
 
 ### Prerequisites
@@ -124,6 +127,9 @@ curl -X 'POST' "http://<SERVICE_IP>:8000/v1/chat/completions" \
 ---
 
 ## 3) Use the same model via NVIDIA NIM (isolated + staged weights)
+
+![Isolated AKS vLLM with NVIDIA NIM and staged weights](images/Isolated-AKS-vLLM-NIM.drawio.png)
+*High-level architecture: AKS running NVIDIA NIM with model weights pre-staged on shared NFS storage for isolated, offline startup.*
 
 Goal: run NVIDIA NIM in an isolated cluster while ensuring **no runtime dependency on external registries/model downloads**.
 

@@ -6,71 +6,63 @@ kind: Deployment
 metadata:
   name: vllm-nim-llama3-server
   labels:
-    app: vllm-nim-llama3 # Consistent top-level label
+    app: vllm-nim-llama3
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vllm-nim-llama3 # Matches Pod label
+      app: vllm-nim-llama3
   template:
     metadata:
       labels:
-        app: vllm-nim-llama3 # Pod label for Service selector
+        app: vllm-nim-llama3
     spec:
 
       # --- NODE SCHEDULING CONFIGURATION ---
       nodeSelector:
-        accelerator: nvidia 
+        accelerator: nvidia
       tolerations:
-        - key: "sku"
-          operator: "Equal"
-          value: "gpu"
-          effect: "NoSchedule"
-        - key: "kubernetes.azure.com/scalesetpriority"
-          operator: "Equal"
-          value: "spot"
-          effect: "NoSchedule"
+      - key: "sku"
+        operator: "Equal"
+        value: "gpu"
+        effect: "NoSchedule"
+      - key: "kubernetes.azure.com/scalesetpriority"
+        operator: "Equal"
+        value: "spot"
+        effect: "NoSchedule"
       # --- END NODE SCHEDULING CONFIGURATION ---
-      
+
       containers:
       - name: nim-inference-server
         image: "<YOUR-ACR-NAME>.azurecr.io/nvcr.io/nim/meta/llama3-8b-instruct:latest"
-        
+
         # --- NIM Configuration ---
         env:
-        #   # CRITICAL: Required for NIM license check and model configuration
-          # - name: NGC_API_KEY
-          #   valueFrom:
-          #     secretKeyRef:
-          #       name: ngc-api-secret # The Secret holding your NGC Key
-          #       key: NGC_API_KEY # The specific key within the Secret
 
+        # Tells NIM to look for model cache here
+        - name: NIM_CACHE_PATH
+          value: /opt/nim/.cache
 
-          # CRITICAL: Tells NIM to look for model cache here
-          - name: NIM_CACHE_PATH
-            value: /opt/nim/.cache    
+        - name: TRANSFORMERS_CACHE
+          value: /tmp/transformers-cache
 
-          - name: TRANSFORMERS_CACHE
-            value: /tmp/transformers-cache   
-              
         resources:
           limits:
-            nvidia.com/gpu: 1 # Requests a single GPU (A100)
-            
+            nvidia.com/gpu: 1
+
         ports:
         - containerPort: 8000
-    
+
         volumeMounts:
         - name: nfs-model-volume
           # CRITICAL: Mount path must match the NIM_CACHE_PATH environment variable
           mountPath: /opt/nim/.cache
-          
+
       volumes:
       - name: nfs-model-volume
         nfs:
           server: "<YOUR-AZURE-FILES-DNS>" # e.g. <storage-account>.file.core.windows.net
           path: "<YOUR-AZURE-FILES-PATH>" # e.g. /<share-name>/<path>
-  
 ---
 # ------------------------------------------------------------------------------
 # 2. SERVICE: Exposes the Endpoint via Internal Load Balancer
@@ -88,9 +80,9 @@ spec:
   type: LoadBalancer
   # Selector must match the Pod's label to route traffic correctly
   selector:
-    app: vllm-nim-llama3 
+    app: vllm-nim-llama3
   ports:
-    - name: http
-      protocol: TCP
-      port: 8000 # The external port for the Load Balancer
-      targetPort: 8000 # The container port (8000 is the default for NIM)
+  - name: http
+    protocol: TCP
+    port: 8000 # The external port for the Load Balancer
+    targetPort: 8000 # The container port (8000 is the default for NIM)
