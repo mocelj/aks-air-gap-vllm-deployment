@@ -19,6 +19,10 @@ The original (environment-specific) versions live under `internal-resources/` an
 
 ---
 
+## 0) Create your AKS cluster and ACR
+
+You can use the [aks_isolated.sh](aks_isolated.sh) provided. Even if you can run it as a script, it is recommended to copy/paste commands to a console. This will allow you to debug potential errors and to keep the value of the shell variables for further use.
+
 ## 1) Test the GPU nodepool (CUDA pod)
 
 Use the CUDA pod to validate that:
